@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn() &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if signedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.userId == userId &&
+        request.resource.data.role in ['user', 'verifier'] &&
+        request.resource.data.isDisabled == false;
+      allow update: if signedIn() &&
+        request.auth.uid == userId &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.role == resource.data.role &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'totalXP', 'level', 'currentStreak', 'longestStreak',
+          'lastStreakDate', 'isDisabled', 'createdAt', 'inviteCode', 'verifierIds'
+        ]);
+      allow delete: if false;
+    }
+
+    match /tasks/{taskId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.verifierId == request.auth.uid || isAdmin());
+      allow update: if signedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.verifierId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if signedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    match /verifications/{verificationId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.verifiedBy == request.auth.uid || isAdmin());
+      allow update: if signedIn() && (resource.data.userId == request.auth.uid || resource.data.verifiedBy == request.auth.uid || isAdmin());
+      allow delete: if false;
+    }
+
+    match /xp_records/{xpId} {
+      allow read: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /achievements/{achievementId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /users/{userId}/unlockedAchievements/{achievementId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if signedIn() && request.auth.uid == userId;
+    }
+  }
+}

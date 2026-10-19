@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "206068923910",
+    "project_id": "lifexp-7a6dc",
+    "storage_bucket": "lifexp-7a6dc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:206068923910:android:9bce098539850a54b5cd87",
+        "android_client_info": {
+          "package_name": "com.example.lifexp_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDijKK5VU8PLJZEr4o5Xrp9ukNHAG_E4qk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
